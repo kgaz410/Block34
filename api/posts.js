@@ -38,14 +38,18 @@ postsRouter.get('/', async (req, res, next) => {
 });
 
 postsRouter.post('/', requireUser, async (req, res, next) => {
-  const { title, content = "" } = req.body;
+  const { title, content = "", tags = "" } = req.body;
+  const tagsArr = tags.trim().split(/\s+/);
 
-  const postData = {};
+  const postData = {
+    tags: tagsArr
+  };
 
   try {
     postData.authorId = req.user.id;
     postData.title = title;
     postData.content = content;
+    // postData.tags = tagsArr
 
     const post = await createPost(postData);
 
@@ -98,6 +102,21 @@ postsRouter.patch('/:postId', requireUser, async (req, res, next) => {
 });
 
 postsRouter.delete('/:postId', requireUser, async (req, res, next) => {
+  try {
+    const (postId) = req.params
+
+    if(!postId){
+      res.send("You need to send along post Id")
+    } else {
+
+    }
+    
+  } catch (error) {
+    
+  }
+  
+  
+  
   res.send({ message: 'under construction' });
 });
 

@@ -1,7 +1,7 @@
 const { Client } = require('pg') // imports the pg module
 
 const client = new Client({
-  connectionString: process.env.DATABASE_URL || 'postgres://localhost:5432/juicebox-dev',
+  connectionString: process.env.DATABASE_URL || 'postgres://localhost:5432/JuiceBox',
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
 });
 
@@ -17,8 +17,8 @@ async function createUser({
 }) {
   try {
     const { rows: [ user ] } = await client.query(`
-      INSERT INTO users(username, password, name) 
-      VALUES($1, $2, $3) 
+      INSERT INTO users(username, password, name, location) 
+      VALUES($1, $2, $3, $4) 
       ON CONFLICT (username) DO NOTHING 
       RETURNING *;
     `, [username, password, name, location]);
@@ -277,6 +277,37 @@ async function getPostsByTagName(tagName) {
   }
 } 
 
+async function deletePostFromDB(postId){
+  try {
+    const post = await getPostById(postId);
+    if(post){
+      const deletePost = await client.query(`
+      DELETE FROM posts
+      WHERE id=$1
+      RETURNING *
+      `, [postId])
+
+      if(deletePost.rows[0]){
+        return deletePost.rows[0];
+      } else {
+        throw {
+          name: "Delete error",
+          message:
+        }
+      }
+    } else {
+      throw {
+        name: "PostNotFoundError",
+        message: `Could not find a post with the postId: ${postId}`
+      };
+    }
+  } catch (error) {
+    throw error;
+  }
+}
+
+
+
 /**
  * TAG Methods
  */
@@ -370,5 +401,6 @@ module.exports = {
   createTags,
   getAllTags,
   createPostTag,
-  addTagsToPost
+  addTagsToPost,
+  deletePostFromDB
 }
